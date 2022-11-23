@@ -5,6 +5,7 @@ import {
   PermissionsAndroid,
   View,
   Text,
+  Switch
 } from 'react-native';
 
 import base64 from 'react-native-base64';
@@ -17,12 +18,7 @@ import {Buffer} from 'buffer';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); //Ignore all log notifications
 
-/*
-    NimBLEService* pMobileService = pServer->createService("1b0bf442-2a40-48ea-9b75-e5237f207420");
-    NimBLECharacteristic* pMobileCharacteristic = pMobileService->createCharacteristic(
-                                               "ccbdc5b7-8699-4335-9a1f-47f20480d3ed",
- */               
-
+            
 const BLTManager = new BleManager();
 const SERVICE_UUID  ='1b0bf442-2a40-48ea-9b75-e5237f207420';
 const MESSAGE_UUID  = 'ccbdc5b7-8699-4335-9a1f-47f20480d3ed';
@@ -45,12 +41,15 @@ function BoolToString(input: boolean) {
 }
 
 export default function App() {
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled2, setIsEnabled2] = useState(false);
+  //const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  const toggleSwitch2 = () => setIsEnabled2(previousState => !previousState);
   //Is a device connected?
   const [isConnected, setIsConnected] = useState(false);
 
   //What device is connected?
   const [connectedDevice, setConnectedDevice] = useState<Device>();
-
   const [message, setMessage] = useState('Nothing Yet');
 
 
@@ -109,6 +108,23 @@ export default function App() {
     }
   }
 
+    //Function to send data to ESP32
+    async function setToggleSwitch(value: boolean) {
+      setIsEnabled(previousState => !previousState);
+      BLTManager.writeCharacteristicWithResponseForDevice(
+        connectedDevice?.id,
+        SERVICE_UUID,
+        MESSAGE_UUID,
+        base64.encode(value.toString()),
+      ).then(characteristic => {
+        console.log('ToggleSwitch  is changed to :', base64.decode(characteristic.value));
+      })
+      .catch((error) => {
+        console.log(error);
+        throw error;
+      });
+    }
+
   //Connect the device and start monitoring characteristics
   async function connectDevice(device: Device) {
     console.log('connecting to Device:', device.name);
@@ -127,6 +143,7 @@ export default function App() {
           setIsConnected(false);
         });
 
+        /*
         //write inital values
         device.writeCharacteristicWithoutResponseForService(
           SERVICE_UUID,
@@ -140,7 +157,7 @@ export default function App() {
             console.log(error);
             throw error;
           });
-   
+            */
      
 
         console.log('Connection established');
@@ -182,7 +199,30 @@ export default function App() {
       </View>
 
       <View style={{paddingBottom: 20}}></View>
+      <View style={styles.rowView}>
+      <Text style={styles.rowView}>Led #1</Text>
+      <Switch
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={newValue => { 
+          setToggleSwitch((newValue));
+        }}
+        value={isEnabled}
+      />
+    </View>
 
+    <View style={{paddingBottom: 20}}></View>
+      <View style={styles.rowView}>
+      <Text style={styles.rowView}>Led #2</Text>
+      <Switch
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={isEnabled2 ? "#f5dd4b" : "#f4f3f4"}
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={toggleSwitch2}
+        value={isEnabled2}
+      />
+    </View>
       {/* Monitored Value */}
 
       <View style={styles.rowView}>

@@ -10,8 +10,13 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   rowView: {
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     alignItems: 'flex-start',
     flexDirection: 'row',
   },
+  switch_text: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center"
+    },
 });
